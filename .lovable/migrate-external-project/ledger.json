@@ -1,0 +1,14 @@
+{
+  "source": "github:https://github.com/vexus-debug/magic-import-hub-52d61a78.git",
+  "capabilities": [
+    {"capability":"application code and routes","source":"GitHub repository","outcome":"Imported unchanged","status":"migrated","next_action":"verify preview"},
+    {"capability":"database schema and migrations","source":"supabase/migrations","outcome":"Preserved unchanged","status":"migrated","next_action":"Configure Lovable Cloud if database access is required"},
+    {"capability":"database records","source":"Repository inspection","outcome":"No record export detected","status":"pending","next_action":"Request CSV or JSON exports after preview"},
+    {"capability":"auth identities","source":"Repository inspection","outcome":"Auth code preserved; no user export detected","status":"pending","next_action":"Request user export if existing accounts must migrate"},
+    {"capability":"external providers and secrets","source":"Repository environment references","outcome":"Variable names preserved; secret values not imported","status":"pending","next_action":"Configure required secrets securely before live verification"},
+    {"capability":"uploaded file bytes","source":"Repository inspection","outcome":"No export detected","status":"pending","next_action":"Provide storage export if existing uploads must migrate"},
+    {"capability":"public endpoints and callbacks","source":"Repository inspection","outcome":"Preserved where present","status":"migrated","next_action":"Verify provider callbacks after deployment"},
+    {"capability":"schedules","source":"Repository inspection","outcome":"No schedule export detected","status":"pending","next_action":"Configure schedules if used in production"},
+    {"capability":"cutover","source":"GitHub repository","outcome":"Not performed","status":"pending","next_action":"Verify preview before publishing"}
+  ]
+}

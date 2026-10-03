@@ -1,144 +1,909 @@
 @import "tailwindcss" source(none);
 @source "../src";
-@import "tw-animate-css";
+@config "../tailwind.config.ts";
+/* Dark applies inside the dashboard shell and inside anything the dashboard
+   renders in a portal (dialogs, sheets, dropdowns, selects, toasts), which
+   live outside the shell in the DOM. */
+@custom-variant dark (&:is(.dark *, .dashboard-dark [role="dialog"] *, .dashboard-dark [role="alertdialog"] *, .dashboard-dark [data-radix-popper-content-wrapper] *, .dashboard-dark [data-sonner-toaster] *, .dashboard-dark [data-vaul-drawer] *));
 
-@custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
+  Clinexus Design System — "Bold Gradient Hero"
+  Dark navy-to-teal gradient sidebar + crisp white content area
+  Premium SaaS aesthetic inspired by Linear, Stripe, Vercel
+  All colours in HSL format
+*/
 
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
+@layer base {
+  :root {
+    /* ── Content area ── */
+    --background: 210 20% 98%;
+    --foreground: 215 28% 12%;
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 12%;
 
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 12%;
+
+    /* Primary: Bold Clinexus Teal */
+    --primary: 185 75% 30%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Deeper teal for depth */
+    --secondary: 185 70% 22%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted: Near-white grey */
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 16% 46%;
+
+    /* Accent: Soft teal wash on white */
+    --accent: 185 55% 94%;
+    --accent-foreground: 185 60% 18%;
+
+    --destructive: 0 84% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 185 75% 30%;
+
+    --radius: 0.625rem;
+
+    /* ── Semantic status colours ── */
+    --success: 152 62% 38%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 48%;
+    --warning-foreground: 0 0% 100%;
+    --info: 214 80% 52%;
+    --info-foreground: 0 0% 100%;
+
+    /* ── Extended clinic palette ── */
+    --clinic-navy: 215 60% 12%;
+    --clinic-navy-light: 215 50% 22%;
+    --clinic-teal: 185 75% 30%;
+    --clinic-teal-light: 185 60% 44%;
+    --clinic-teal-pale: 185 55% 94%;
+    --clinic-mint: 170 45% 94%;
+    --clinic-cream: 210 20% 98%;
+
+    /* ── Slate Blue — sophisticated accent ── */
+    --slate: 220 28% 38%;
+    --slate-light: 220 32% 55%;
+    --slate-pale: 220 30% 94%;
+    --slate-foreground: 0 0% 100%;
+
+    /* ── Gold — premium accent for trends & highlights ── */
+    --gold: 38 88% 50%;
+    --gold-light: 40 90% 64%;
+    --gold-pale: 42 80% 95%;
+    --gold-deep: 34 78% 40%;
+    --gold-foreground: 0 0% 100%;
+
+    /* ── Sing-inspired dashboard surfaces ── */
+    --app-canvas: 210 28% 96%;
+    --app-canvas-accent: 185 55% 94%;
+    --widget-border: 214 18% 88%;
+    --widget-control: 215 14% 64%;
+    --widget-control-hover: 185 75% 30%;
+
+    /* ── Elevation shadows ── */
+    --shadow-xs:  0 1px 2px 0 hsl(215 28% 12% / 0.04);
+    --shadow-sm:  0 1px 3px 0 hsl(215 28% 12% / 0.07), 0 1px 2px -1px hsl(215 28% 12% / 0.05);
+    --shadow-md:  0 4px 8px -1px hsl(215 28% 12% / 0.08), 0 2px 4px -2px hsl(215 28% 12% / 0.05);
+    --shadow-lg:  0 10px 20px -3px hsl(215 28% 12% / 0.10), 0 4px 8px -4px hsl(215 28% 12% / 0.05);
+    --shadow-xl:  0 20px 32px -5px hsl(215 28% 12% / 0.12), 0 8px 12px -6px hsl(215 28% 12% / 0.05);
+    --widget-shadow: 0 12px 28px -18px hsl(215 28% 12% / 0.28), 0 2px 8px -4px hsl(215 28% 12% / 0.10);
+
+    /* ── Sidebar: Dark navy → rich teal gradient ── */
+    --sidebar-background: 215 55% 11%;
+    --sidebar-foreground: 210 30% 92%;
+    --sidebar-primary: 185 75% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 40% 18%;
+    --sidebar-accent-foreground: 210 30% 96%;
+    --sidebar-border: 215 40% 17%;
+    --sidebar-ring: 185 65% 52%;
+
+    /* Sidebar gradient stop colours (used in component) */
+    --sidebar-grad-top: 215 58% 10%;
+    --sidebar-grad-bottom: 185 62% 20%;
+  }
+
+  .dark {
+    --background: 215 32% 8%;
+    --foreground: 210 25% 94%;
+
+    --card: 215 30% 10%;
+    --card-foreground: 210 25% 94%;
+
+    --popover: 215 30% 10%;
+    --popover-foreground: 210 25% 94%;
+
+    --primary: 185 68% 46%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 185 55% 30%;
+    --secondary-foreground: 210 25% 94%;
+
+    --muted: 215 28% 15%;
+    --muted-foreground: 215 14% 55%;
+
+    --accent: 215 32% 18%;
+    --accent-foreground: 210 25% 94%;
+
+    --destructive: 0 62% 42%;
+    --destructive-foreground: 210 25% 94%;
+
+    --border: 215 28% 18%;
+    --input: 215 28% 18%;
+    --ring: 185 68% 46%;
+
+    --app-canvas: 215 30% 8%;
+    --app-canvas-accent: 215 28% 14%;
+    --widget-border: 215 24% 18%;
+    --widget-control: 215 14% 48%;
+    --widget-control-hover: 185 68% 46%;
+
+    --slate: 220 30% 55%;
+    --slate-light: 220 35% 68%;
+    --slate-pale: 220 25% 18%;
+    --slate-foreground: 0 0% 100%;
+
+    --gold: 38 80% 60%;
+    --gold-light: 40 85% 70%;
+    --gold-pale: 38 50% 18%;
+    --gold-deep: 34 70% 48%;
+    --gold-foreground: 25 30% 12%;
+
+    --shadow-xs:  0 1px 2px 0 hsl(0 0% 0% / 0.20);
+    --shadow-sm:  0 1px 3px 0 hsl(0 0% 0% / 0.26), 0 1px 2px -1px hsl(0 0% 0% / 0.18);
+    --shadow-md:  0 4px 8px -1px hsl(0 0% 0% / 0.30), 0 2px 4px -2px hsl(0 0% 0% / 0.18);
+    --shadow-lg:  0 10px 20px -3px hsl(0 0% 0% / 0.36), 0 4px 8px -4px hsl(0 0% 0% / 0.18);
+    --shadow-xl:  0 20px 32px -5px hsl(0 0% 0% / 0.42), 0 8px 12px -6px hsl(0 0% 0% / 0.18);
+    --widget-shadow: 0 14px 30px -18px hsl(0 0% 0% / 0.64), 0 2px 8px -4px hsl(0 0% 0% / 0.35);
+
+    --sidebar-background: 215 52% 8%;
+    --sidebar-foreground: 210 28% 90%;
+    --sidebar-primary: 185 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 42% 15%;
+    --sidebar-accent-foreground: 210 28% 96%;
+    --sidebar-border: 215 38% 14%;
+    --sidebar-ring: 185 60% 55%;
+
+    --sidebar-grad-top: 215 55% 8%;
+    --sidebar-grad-bottom: 185 58% 16%;
+  }
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
+  * { @apply border-border; }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    @apply bg-background text-foreground antialiased;
+    -webkit-tap-highlight-color: transparent;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  h1 { font-size: clamp(1.75rem, 1.5rem + 1.25vw, 2.5rem); }
+  h2 { font-size: clamp(1.375rem, 1.2rem + 0.875vw, 1.875rem); }
+  h3 { font-size: clamp(1.125rem, 1rem + 0.625vw, 1.5rem); }
+  h1, h2, h3, h4, h5, h6 { @apply font-semibold tracking-tight; }
+
+  /* Tabular numerals for all numeric content */
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  * { -webkit-overflow-scrolling: touch; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  .scroll-momentum {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Elevation system */
+  .elevation-0 { box-shadow: none; }
+  .elevation-1 { box-shadow: var(--shadow-xs); }
+  .elevation-2 { box-shadow: var(--shadow-sm); }
+  .elevation-3 { box-shadow: var(--shadow-md); }
+  .elevation-4 { box-shadow: var(--shadow-lg); }
+  .elevation-5 { box-shadow: var(--shadow-xl); }
+
+  /* No permanent layer promotion: persistent will-change/translateZ caused
+     composited-tile corruption on mobile Chrome. Framer Motion promotes
+     during animation on its own. */
+  .gpu-accelerated { transform: none; }
+
+  .sing-widget {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid hsl(var(--widget-border));
+    background: hsl(var(--card));
+    box-shadow: var(--widget-shadow);
+  }
+
+  .sing-widget::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.32), transparent);
+    pointer-events: none;
+  }
+
+  .sing-widget::after {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 1.25rem;
+    height: 0.25rem;
+    opacity: 0.55;
+    background-image: radial-gradient(circle, hsl(var(--widget-control)) 1.5px, transparent 1.75px);
+    background-size: 0.42rem 0.25rem;
+    background-repeat: repeat-x;
+    pointer-events: none;
+  }
+
+  .sing-widget:has([role='table'])::after,
+  .sing-widget:has(table)::after {
+    opacity: 0.35;
+  }
+
+  .widget-controls-dots {
+    color: hsl(var(--widget-control));
+  }
+
+  .widget-controls-dots:hover {
+    color: hsl(var(--widget-control-hover));
+  }
+
+}
+
+/* ─── Premium Stat Card ─────────────────────────────────── */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--stat-card-bar, linear-gradient(90deg, hsl(var(--primary)), hsl(var(--clinic-teal-light))));
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px hsl(var(--primary) / 0.14), var(--shadow-lg);
+  border-color: hsl(var(--primary) / 0.25);
+}
+
+/* ─── Card hover lift ───────────────────────────────────── */
+.card-hover {
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.28s;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ─── Dashboard background ──────────────────────────────── */
+.dashboard-bg {
+  background:
+    linear-gradient(180deg, hsl(var(--app-canvas)) 0%, hsl(var(--background)) 46%, hsl(var(--app-canvas)) 100%);
+}
+
+/* ─── Glass card ────────────────────────────────────────── */
+.glass-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--widget-border));
+  box-shadow: var(--widget-shadow);
+}
+
+/* ─── Sidebar gradient ──────────────────────────────────── */
+.sidebar-gradient {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--sidebar-grad-top)) 0%,
+    hsl(var(--sidebar-grad-bottom)) 100%
+  );
+}
+
+/* ─── Sidebar active item ───────────────────────────────── */
+.sidebar-active-item {
+  background: hsl(var(--sidebar-primary) / 0.15);
+  border-left: 3px solid hsl(var(--sidebar-primary));
+  color: hsl(var(--sidebar-primary));
+}
+
+/* ─── Header accent bar ─────────────────────────────────── */
+.header-accent::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--clinic-teal-light)), hsl(var(--primary)));
+}
+
+/* ─── Animations ────────────────────────────────────────── */
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(20); opacity: 0; }
+}
+.animate-ripple { animation: ripple 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-18px) rotate(4deg); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 18px hsl(185 75% 30% / 0.18); }
+  50%       { box-shadow: 0 0 38px hsl(185 75% 30% / 0.40); }
+}
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float         { animation: float 6s ease-in-out infinite; }
+.animate-float-slow    { animation: float-slow 8s ease-in-out infinite; }
+.animate-gradient      { background-size: 200% 200%; animation: gradient-shift 8s ease infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, hsl(185 75% 30% / 0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+.animate-pulse-glow    { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-count-up      { animation: count-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* Gold shimmer */
+@keyframes gold-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.gold-shimmer {
+  background: linear-gradient(90deg,
+    hsl(var(--gold-pale)) 0%,
+    hsl(var(--gold-light) / 0.6) 40%,
+    hsl(var(--gold)) 50%,
+    hsl(var(--gold-light) / 0.6) 60%,
+    hsl(var(--gold-pale)) 100%);
+  background-size: 200% 100%;
+  animation: gold-shimmer 3s ease infinite;
+}
+.gold-glow   { box-shadow: 0 0 0 1px hsl(var(--gold) / 0.25), 0 4px 16px -4px hsl(var(--gold) / 0.30); }
+.gold-border { border: 1px solid hsl(var(--gold) / 0.35); background: linear-gradient(135deg, hsl(var(--gold-pale)), hsl(var(--card))); }
+
+/* Timeline connector */
+.timeline-item { position: relative; }
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 15px; top: 32px; bottom: -8px;
+  width: 1.5px;
+  background: linear-gradient(to bottom, hsl(var(--border)), transparent);
+}
+.timeline-item:last-child::before { display: none; }
+
+/* Gradient backgrounds */
+.gradient-hero {
+  background: linear-gradient(135deg,
+    hsl(var(--clinic-teal-pale)) 0%,
+    hsl(var(--background)) 50%,
+    hsl(var(--clinic-mint)) 100%);
+}
+.gradient-animated {
+  background: linear-gradient(-45deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--clinic-navy)) 25%,
+    hsl(var(--clinic-teal-light)) 50%,
+    hsl(185 55% 38%) 75%,
+    hsl(var(--primary)) 100%);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Blob shapes */
+.blob   { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+.blob-2 { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+
+/* Page transitions */
+.page-transition-enter { opacity: 0; transform: translateY(8px); }
+.page-transition-enter-active {
+  opacity: 1; transform: translateY(0);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modal overlay */
+.modal-overlay-enter { opacity: 0; backdrop-filter: blur(0px); }
+.modal-overlay-enter-active {
+  opacity: 1; backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── Public marketing site theme (scoped) ──
+   The public site follows the eye-clinics page: deep ink, electric teal,
+   quiet borders, and translucent surfaces. Fonts remain owned by each page. */
+.site-theme {
+  --background: 197 43% 6%;
+  --foreground: 168 21% 94%;
+  --card: 186 51% 12%;
+  --card-foreground: 168 21% 94%;
+  --popover: 186 51% 12%;
+  --popover-foreground: 168 21% 94%;
+  --primary: 172 84% 39%;
+  --primary-foreground: 197 43% 6%;
+  --secondary: 186 51% 12%;
+  --secondary-foreground: 168 21% 94%;
+  --muted: 186 51% 12%;
+  --muted-foreground: 168 12% 70%;
+  --accent: 172 84% 39%;
+  --accent-foreground: 197 43% 6%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 172 84% 39%;
+  --input: 172 84% 39%;
+  --ring: 172 84% 39%;
+  --radius: 1.5rem;
+  --medical-blue: 172 84% 39%;
+  --medical-blue-light: 168 21% 94%;
+  --medical-blue-dark: 197 43% 6%;
+  --medical-navy: 197 43% 6%;
+  --medical-teal: 172 84% 39%;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.site-theme [class*="bg-card"] {
+  border-color: hsl(var(--primary) / 0.2);
+  background-color: hsl(var(--card) / 0.72);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.site-theme [class*="border-border"] {
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+.site-theme [class*="bg-muted"] {
+  background-color: hsl(var(--muted) / 0.58);
+}
+
+.site-theme .site-glass {
+  border: 1px solid hsl(var(--primary) / 0.2);
+  background-color: hsl(var(--card) / 0.64);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-theme *,
+  .site-theme *::before,
+  .site-theme *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Eye clinics sales page theme (scoped) ── */
+.eye-theme {
+  --background: 197 43% 6%;
+  --foreground: 168 21% 94%;
+  --card: 186 51% 12%;
+  --card-foreground: 168 21% 94%;
+  --popover: 186 51% 12%;
+  --popover-foreground: 168 21% 94%;
+  --primary: 172 84% 39%;
+  --primary-foreground: 197 43% 6%;
+  --secondary: 186 51% 12%;
+  --secondary-foreground: 168 21% 94%;
+  --muted: 186 51% 12%;
+  --muted-foreground: 168 12% 70%;
+  --accent: 172 84% 39%;
+  --accent-foreground: 197 43% 6%;
+  --surface-light: 168 21% 94%;
+  --surface-light-foreground: 197 43% 6%;
+  --border: 172 84% 39%;
+  --input: 172 84% 39%;
+  --ring: 172 84% 39%;
+  --radius: 1.5rem;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: "Manrope", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.eye-theme h1,
+.eye-theme h2,
+.eye-theme h3,
+.eye-theme .font-display {
+  font-family: "Sora", system-ui, sans-serif;
+}
+
+.eye-theme .eye-panel {
+  border: 1px solid hsl(var(--primary) / 0.2);
+  background-color: hsl(var(--card));
+}
+
+.eye-theme .eye-panel-light {
+  background-color: hsl(var(--surface-light));
+  color: hsl(var(--surface-light-foreground));
+}
+
+.eye-theme .eye-panel-accent {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.eye-theme .eye-panel-accent .text-primary,
+.eye-theme .eye-panel-accent .text-card-foreground {
+  color: hsl(var(--primary-foreground));
+}
+
+.eye-theme .eye-panel-accent .text-muted-foreground {
+  color: hsl(var(--primary-foreground) / 0.85);
+}
+
+/* ── Public site section bands ──
+   Alternating surfaces so a page is never one flat colour:
+   deep ink, tinted ink, and bright near-white bands. */
+.site-theme .site-section-tint {
+  background-image:
+    radial-gradient(90% 60% at 12% 0%, hsl(var(--primary) / 0.14) 0%, transparent 62%),
+    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(186 51% 10%) 50%, hsl(var(--background)) 100%);
+}
+
+.site-theme .site-section-light {
+  --background: 0 0% 100%;
+  --foreground: 197 43% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 197 43% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 197 43% 8%;
+  --primary: 172 74% 28%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 172 30% 94%;
+  --secondary-foreground: 197 43% 8%;
+  --muted: 180 20% 96%;
+  --muted-foreground: 197 12% 38%;
+  --accent: 172 60% 92%;
+  --accent-foreground: 197 43% 8%;
+  --border: 180 18% 86%;
+  --input: 180 18% 86%;
+  color: hsl(var(--foreground));
+  background-image:
+    radial-gradient(80% 60% at 85% 0%, hsl(172 74% 28% / 0.07) 0%, transparent 60%),
+    linear-gradient(180deg, hsl(180 25% 98%) 0%, hsl(0 0% 100%) 45%, hsl(180 25% 97%) 100%);
+}
+
+.site-theme .site-section-light [class*="bg-card"],
+.site-theme .site-section-light .site-glass {
+  border-color: hsl(var(--primary) / 0.14);
+  background-color: hsl(0 0% 100% / 0.86);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.site-theme .site-section-light [class*="bg-muted"] {
+  background-color: hsl(var(--muted) / 0.8);
+}
+
+/* Soft edge between bands */
+.site-theme .site-section-light,
+.site-theme .site-section-tint {
+  border-top: 1px solid hsl(var(--primary) / 0.14);
+  border-bottom: 1px solid hsl(var(--primary) / 0.14);
+}
+
+/* ── Public site typography & surfaces ──
+   Clean sans-serif headings for a clinical, trustworthy SaaS feel,
+   tight sans body and hairline borders. Scoped to the public site. */
+.site-theme h1,
+.site-theme h2,
+.site-theme h3 {
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.site-theme h1 {
+  line-height: 1.04;
+}
+
+.site-theme p,
+.site-theme li {
+  font-family: "DM Sans", system-ui, sans-serif;
+  letter-spacing: -0.005em;
+}
+
+.site-theme .site-eyebrow {
+  font-family: "DM Sans", system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.site-theme .site-hairline {
+  border: 1px solid hsl(var(--border));
+  box-shadow: none;
+}
+
+.site-theme .site-hairline-invert {
+  border: 1px solid hsl(0 0% 100% / 0.12);
+  box-shadow: none;
+}
+
+/* Public surfaces stay crisp and border-led rather than glow-led. */
+.site-theme :where(.shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  box-shadow: none;
+}
+
+.site-theme .site-rule {
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* ── Dashboard app theme ──
+   Mirrors the public site's clinical typography, teal accent, crisp borders,
+   and restrained depth while preserving dense, scannable workspace layouts. */
+.dashboard-theme {
+  --background: 180 25% 98%;
+  --foreground: 197 43% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 197 43% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 197 43% 8%;
+  --primary: 172 74% 28%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 172 30% 94%;
+  --secondary-foreground: 197 43% 8%;
+  --muted: 180 20% 96%;
+  --muted-foreground: 197 12% 38%;
+  --accent: 172 60% 92%;
+  --accent-foreground: 197 43% 8%;
+  --border: 180 18% 86%;
+  --input: 180 18% 86%;
+  --ring: 172 74% 28%;
+  --app-canvas: 180 25% 97%;
+  --app-canvas-accent: 172 40% 95%;
+  --widget-border: 180 18% 86%;
+  --widget-shadow: 0 1px 2px hsl(197 43% 8% / 0.03), 0 8px 24px -20px hsl(197 43% 8% / 0.22);
+  --sidebar-background: 197 43% 6%;
+  --sidebar-foreground: 168 21% 94%;
+  --sidebar-primary: 172 84% 39%;
+  --sidebar-primary-foreground: 197 43% 6%;
+  --sidebar-accent: 186 51% 12%;
+  --sidebar-accent-foreground: 168 21% 94%;
+  --sidebar-border: 172 84% 39% / 0.18;
+  --sidebar-ring: 172 84% 39%;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: "DM Sans", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dashboard-theme.dark,
+.dashboard-dark .dashboard-theme {
+  --background: 197 43% 6%;
+  --foreground: 168 21% 94%;
+  --card: 186 51% 10%;
+  --card-foreground: 168 21% 94%;
+  --popover: 186 51% 10%;
+  --popover-foreground: 168 21% 94%;
+  --primary: 172 84% 39%;
+  --primary-foreground: 197 43% 6%;
+  --secondary: 186 40% 15%;
+  --secondary-foreground: 168 21% 94%;
+  --muted: 186 38% 13%;
+  --muted-foreground: 168 12% 68%;
+  --accent: 172 45% 16%;
+  --accent-foreground: 168 21% 94%;
+  --border: 172 28% 20%;
+  --input: 172 28% 20%;
+  --app-canvas: 197 43% 5%;
+  --app-canvas-accent: 186 45% 9%;
+  --widget-border: 172 24% 19%;
+  --widget-shadow: 0 1px 2px hsl(197 60% 2% / 0.25), 0 12px 28px -22px hsl(197 60% 2% / 0.8);
+}
+
+.dashboard-theme h1,
+.dashboard-theme h2,
+.dashboard-theme h3,
+.dashboard-theme h4,
+.dashboard-theme h5,
+.dashboard-theme h6 {
+  font-family: "Plus Jakarta Sans", "DM Sans", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.dashboard-theme p,
+.dashboard-theme li,
+.dashboard-theme button,
+.dashboard-theme input,
+.dashboard-theme textarea,
+.dashboard-theme select,
+.dashboard-theme table {
+  font-family: "DM Sans", system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.dashboard-theme.dashboard-bg {
+  background:
+    linear-gradient(180deg, hsl(var(--app-canvas)) 0%, hsl(var(--background)) 42%, hsl(var(--app-canvas)) 100%);
+}
+
+.dashboard-theme .dashboard-sidebar [data-sidebar="sidebar"] {
+  background: hsl(var(--sidebar-background));
+}
+
+/* The mobile dashboard sidebar renders in a portal at the end of <body>,
+   outside .dashboard-theme, so it would otherwise fall back to the root
+   navy tokens. Re-declare the dashboard sidebar tokens on it so it matches
+   the desktop rail (same values in light and dark — .dashboard-theme.dark
+   does not override sidebar tokens). */
+.dashboard-sidebar[data-sidebar="sidebar"][data-mobile="true"] {
+  --sidebar-background: 197 43% 6%;
+  --sidebar-foreground: 168 21% 94%;
+  --sidebar-primary: 172 84% 39%;
+  --sidebar-primary-foreground: 197 43% 6%;
+  --sidebar-accent: 186 51% 12%;
+  --sidebar-accent-foreground: 168 21% 94%;
+  --sidebar-border: 172 84% 39% / 0.18;
+  --sidebar-ring: 172 84% 39%;
+  background: hsl(var(--sidebar-background));
+}
+
+.dashboard-theme .sing-widget,
+.dashboard-theme .glass-card {
+  border-color: hsl(var(--widget-border));
+  background: hsl(var(--card));
+  box-shadow: var(--widget-shadow);
+}
+
+.dashboard-theme .sing-widget::before,
+.dashboard-theme .sing-widget::after {
+  display: none;
+}
+
+.dashboard-theme .stat-card::after {
+  height: 2px;
+  background: hsl(var(--primary));
+}
+
+.dashboard-theme .card-hover:hover,
+.dashboard-theme .stat-card:hover {
+  transform: translateY(-2px);
+  border-color: hsl(var(--primary) / 0.28);
+  box-shadow: 0 12px 28px -22px hsl(var(--foreground) / 0.35);
+}
+
+.dashboard-theme :where(input, textarea, select) {
+  box-shadow: none;
+}
+
+.dashboard-theme :where(table thead) {
+  background: hsl(var(--muted) / 0.7);
+}
+
+.dashboard-theme :where([role="dialog"], [role="menu"]) {
+  border-color: hsl(var(--border));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-theme *,
+  .dashboard-theme *::before,
+  .dashboard-theme *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Dark mode for portalled dashboard surfaces ──
+   Dialogs, sheets, dropdowns, selects, popovers, tooltips and toasts render at
+   the end of <body>, outside .dashboard-theme, so they need the same tokens. */
+.dashboard-dark [role="dialog"],
+.dashboard-dark [role="alertdialog"],
+.dashboard-dark [role="menu"],
+.dashboard-dark [role="listbox"],
+.dashboard-dark [data-radix-popper-content-wrapper],
+.dashboard-dark [data-sonner-toaster],
+.dashboard-dark [data-vaul-drawer] {
+  --background: 197 43% 6%;
+  --foreground: 168 21% 94%;
+  --card: 186 51% 10%;
+  --card-foreground: 168 21% 94%;
+  --popover: 186 51% 10%;
+  --popover-foreground: 168 21% 94%;
+  --primary: 172 84% 39%;
+  --primary-foreground: 197 43% 6%;
+  --secondary: 186 40% 15%;
+  --secondary-foreground: 168 21% 94%;
+  --muted: 186 38% 13%;
+  --muted-foreground: 168 12% 68%;
+  --accent: 172 45% 16%;
+  --accent-foreground: 168 21% 94%;
+  --border: 172 28% 20%;
+  --input: 172 28% 20%;
+  --widget-border: 172 24% 19%;
+  --widget-shadow: 0 1px 2px hsl(197 60% 2% / 0.25), 0 12px 28px -22px hsl(197 60% 2% / 0.8);
+  color-scheme: dark;
+  color: hsl(var(--foreground));
+}
+
+/* ── Filled action buttons stay legible on the dashboard ──
+   The dashboard palette turns --secondary into a pale tint, which made
+   bg-secondary call-to-action buttons (white label on near-white) invisible in
+   light mode. Give those interactive elements a solid teal fill instead. */
+.dashboard-theme :is(button, a, [role="button"]).bg-secondary,
+.dashboard-dark [role="dialog"] :is(button, a, [role="button"]).bg-secondary,
+.dashboard-dark [data-radix-popper-content-wrapper] :is(button, a, [role="button"]).bg-secondary {
+  background-color: hsl(172 74% 26%);
+  color: hsl(0 0% 100%);
+}
+
+.dashboard-theme :is(button, a, [role="button"]).bg-secondary:hover,
+.dashboard-dark [role="dialog"] :is(button, a, [role="button"]).bg-secondary:hover {
+  background-color: hsl(172 74% 21%);
+  color: hsl(0 0% 100%);
+}
+
+.dashboard-theme.dark :is(button, a, [role="button"]).bg-secondary,
+.dashboard-dark .dashboard-theme :is(button, a, [role="button"]).bg-secondary {
+  background-color: hsl(172 84% 34%);
+  color: hsl(197 43% 6%);
+}
+
+.dashboard-theme.dark :is(button, a, [role="button"]).bg-secondary:hover,
+.dashboard-dark .dashboard-theme :is(button, a, [role="button"]).bg-secondary:hover {
+  background-color: hsl(172 84% 39%);
+  color: hsl(197 43% 6%);
+}
+
+/* ── Theme-aware page loading skeleton ── */
+html { background-color: hsl(210 20% 98%); }
+html.dashboard-dark { background-color: hsl(215 32% 8%); color-scheme: dark; }
+.page-skeleton { background-color: hsl(210 20% 98%); }
+.page-skeleton-panel { background-color: hsl(210 20% 95%); }
+.page-skeleton-bar {
+  background: linear-gradient(90deg, hsl(214 20% 90%) 0%, hsl(214 20% 95%) 50%, hsl(214 20% 90%) 100%);
+  background-size: 200% 100%;
+  animation: page-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+.dashboard-dark .page-skeleton { background-color: hsl(215 32% 8%); }
+.dashboard-dark .page-skeleton-panel { background-color: hsl(215 30% 11%); }
+.dashboard-dark .page-skeleton-bar {
+  background: linear-gradient(90deg, hsl(215 25% 15%) 0%, hsl(215 25% 21%) 50%, hsl(215 25% 15%) 100%);
+  background-size: 200% 100%;
+}
+@keyframes page-skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
