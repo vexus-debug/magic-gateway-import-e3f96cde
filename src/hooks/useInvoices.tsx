@@ -119,7 +119,7 @@ interface CreateInvoiceInput {
   payment_method: string;
   amount_paid: number;
   line_items: {
-    treatment_id: string;
+    treatment_id: string | null;
     description: string;
     quantity: number;
     unit_price: number;

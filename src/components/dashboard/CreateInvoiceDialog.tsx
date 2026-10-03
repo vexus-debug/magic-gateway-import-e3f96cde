@@ -23,9 +23,13 @@ const paymentMethods = ["Cash", "Bank Transfer", "POS", "Card"];
 const invoiceSchema = z.object({
   patientId: z.string().min(1, "Select a patient"),
   lineItems: z.array(z.object({
-    treatmentId: z.string().min(1, "Select a treatment"),
+    treatmentId: z.string().optional().default(""),
     quantity: z.coerce.number().min(1, "Min 1"),
-  })).min(1, "Add at least one item"),
+    /** Set for lines carried in from a treatment plan (plan price wins over catalog price). */
+    description: z.string().optional(),
+    unitPrice: z.coerce.number().min(0).optional(),
+    key: z.string().optional(),
+  }).refine((l) => !!l.treatmentId || !!l.description?.trim(), { message: "Select a treatment", path: ["treatmentId"] })).min(1, "Add at least one item"),
   discount: z.coerce.number().min(0).max(100).optional(),
   paymentMethod: z.string().min(1, "Select payment method"),
   amountPaid: z.coerce.number().min(0).optional(),
@@ -38,15 +42,17 @@ interface CreateInvoiceDialogProps {
   onOpenChange: (open: boolean) => void;
   preselectedPatientId?: string;
   preselectedTreatmentIds?: string[];
-  /** Fires after the invoice is saved. */
-  onCreated?: () => void;
+  /** Pre-priced lines (e.g. plan items). `key` identifies each line back to the caller. */
+  preselectedLines?: { key: string; treatmentId?: string | null; description: string; unitPrice: number; quantity?: number }[];
+  /** Fires after the invoice is saved with the keys of preselected lines that were kept. */
+  onCreated?: (keptKeys: string[]) => void;
 }
 
 function formatCurrency(amount: number) {
   return `₦${amount.toLocaleString()}`;
 }
 
-export function CreateInvoiceDialog({ open, onOpenChange, preselectedPatientId, preselectedTreatmentIds, onCreated }: CreateInvoiceDialogProps) {
+export function CreateInvoiceDialog({ open, onOpenChange, preselectedPatientId, preselectedTreatmentIds, preselectedLines, onCreated }: CreateInvoiceDialogProps) {
   const { data: patients = [] } = usePatients();
   const { data: treatments = [] } = useTreatments();
   const createInvoice = useCreateInvoice();
@@ -72,23 +78,30 @@ export function CreateInvoiceDialog({ open, onOpenChange, preselectedPatientId, 
     if (!open) return;
     form.reset({
       patientId: preselectedPatientId || "",
-      lineItems: preselectedTreatmentIds?.length
-        ? preselectedTreatmentIds.map((id) => ({ treatmentId: id, quantity: 1 }))
+      lineItems: [
+        ...(preselectedLines || []).map((l) => ({ treatmentId: l.treatmentId || "", quantity: l.quantity || 1, description: l.description, unitPrice: l.unitPrice, key: l.key })),
+        ...(preselectedTreatmentIds || []).map((id) => ({ treatmentId: id, quantity: 1 })),
+      ].length
+        ? [
+            ...(preselectedLines || []).map((l) => ({ treatmentId: l.treatmentId || "", quantity: l.quantity || 1, description: l.description, unitPrice: l.unitPrice, key: l.key })),
+            ...(preselectedTreatmentIds || []).map((id) => ({ treatmentId: id, quantity: 1 })),
+          ]
         : [{ treatmentId: "", quantity: 1 }],
       discount: 0,
       paymentMethod: "",
       amountPaid: 0,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, preselectedPatientId, JSON.stringify(preselectedTreatmentIds || [])]);
+  }, [open, preselectedPatientId, JSON.stringify(preselectedTreatmentIds || []), JSON.stringify(preselectedLines || [])]);
 
   const watchedItems = form.watch("lineItems");
   const watchedDiscount = form.watch("discount") || 0;
 
-  const subtotal = watchedItems.reduce((sum, item) => {
-    const treatment = treatments.find((t) => t.id === item.treatmentId);
-    return sum + (Number(treatment?.price) || 0) * (item.quantity || 0);
-  }, 0);
+  const unitOf = (item: { treatmentId?: string; unitPrice?: number }) =>
+    item.unitPrice != null && !Number.isNaN(Number(item.unitPrice))
+      ? Number(item.unitPrice)
+      : Number(treatments.find((t) => t.id === item.treatmentId)?.price) || 0;
+  const subtotal = watchedItems.reduce((sum, item) => sum + unitOf(item) * (item.quantity || 0), 0);
 
   const discountAmount = (subtotal * watchedDiscount) / 100;
   const total = subtotal - discountAmount;
@@ -99,10 +112,10 @@ export function CreateInvoiceDialog({ open, onOpenChange, preselectedPatientId, 
 
     const lineItemsData = data.lineItems.map((li) => {
       const treatment = treatments.find((t) => t.id === li.treatmentId);
-      const unitPrice = Number(treatment?.price) || 0;
+      const unitPrice = unitOf(li);
       return {
-        treatment_id: li.treatmentId,
-        description: treatment?.name || "",
+        treatment_id: li.treatmentId || null,
+        description: li.description?.trim() || treatment?.name || "",
         quantity: li.quantity,
         unit_price: unitPrice,
         line_total: unitPrice * li.quantity,
@@ -124,7 +137,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, preselectedPatientId, 
       });
       form.reset();
       onOpenChange(false);
-      onCreated?.();
+      onCreated?.(data.lineItems.map((l) => l.key).filter(Boolean) as string[]);
     } catch (err: any) {
       toast({ title: "Error creating invoice", description: err.message, variant: "destructive" });
     }
@@ -162,13 +175,27 @@ export function CreateInvoiceDialog({ open, onOpenChange, preselectedPatientId, 
             <div className="space-y-2">
               <FormLabel>Treatment Items *</FormLabel>
               {fields.map((field, index) => {
-                const selectedTreatment = treatments.find(
-                  (t) => t.id === watchedItems[index]?.treatmentId
-                );
-                const lineTotal = (Number(selectedTreatment?.price) || 0) * (watchedItems[index]?.quantity || 0);
+                const line = watchedItems[index] || ({} as any);
+                const lineTotal = unitOf(line) * (line.quantity || 0);
+                const isPlanLine = line.description !== undefined;
 
                 return (
                   <div key={field.id} className="flex items-end gap-2">
+                    {isPlanLine ? (
+                      <>
+                        <FormField control={form.control} name={`lineItems.${index}.description`} render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormControl><Input placeholder="Description" {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name={`lineItems.${index}.unitPrice`} render={({ field }) => (
+                          <FormItem className="w-24">
+                            <FormControl><Input type="number" min={0} placeholder="Price ₦" {...field} value={field.value ?? ""} /></FormControl>
+                          </FormItem>
+                        )} />
+                      </>
+                    ) : (
                     <FormField control={form.control} name={`lineItems.${index}.treatmentId`} render={({ field }) => (
                       <FormItem className="flex-1">
                         <Select onValueChange={field.onChange} value={field.value}>
@@ -186,6 +213,7 @@ export function CreateInvoiceDialog({ open, onOpenChange, preselectedPatientId, 
                         <FormMessage />
                       </FormItem>
                     )} />
+                    )}
                     <FormField control={form.control} name={`lineItems.${index}.quantity`} render={({ field }) => (
                       <FormItem className="w-20">
                         <FormControl>

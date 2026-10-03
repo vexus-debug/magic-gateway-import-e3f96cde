@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -62,9 +62,12 @@ interface BookAppointmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedPatientId?: string;
+  /** Prefill for follow-ups (e.g. next planned visit). */
+  preselectedTreatmentId?: string;
+  preselectedNotes?: string;
 }
 
-export function BookAppointmentDialog({ open, onOpenChange, preselectedPatientId }: BookAppointmentDialogProps) {
+export function BookAppointmentDialog({ open, onOpenChange, preselectedPatientId, preselectedTreatmentId, preselectedNotes }: BookAppointmentDialogProps) {
   const terms = useClinicTerms();
   const { data: patients = [] } = usePatients();
   const { data: dentists = [] } = useDentists();
@@ -83,6 +86,14 @@ export function BookAppointmentDialog({ open, onOpenChange, preselectedPatientId
       notes: "",
     },
   });
+
+  useEffect(() => {
+    if (!open) return;
+    if (preselectedPatientId) form.setValue("patientId", preselectedPatientId);
+    if (preselectedTreatmentId) form.setValue("treatmentId", preselectedTreatmentId);
+    if (preselectedNotes) form.setValue("notes", preselectedNotes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, preselectedPatientId, preselectedTreatmentId, preselectedNotes]);
 
   const wDentist = form.watch("dentistId");
   const wDate = form.watch("date");
