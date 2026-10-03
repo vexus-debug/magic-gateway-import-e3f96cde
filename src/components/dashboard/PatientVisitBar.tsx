@@ -67,7 +67,7 @@ export function PatientVisitBar({ patientId, onClear }: { patientId: string; onC
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <div className="hidden sm:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {items.map((it) => {
               const active = it.page !== "patient" && pathname.endsWith(`/${it.page}`);
               const Icon = it.done ? Check : it.icon;
@@ -83,7 +83,7 @@ export function PatientVisitBar({ patientId, onClear }: { patientId: string; onC
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="h-8 w-8 sm:hidden" aria-label="Jump to">
+              <Button size="icon" variant="ghost" className="h-8 w-8 lg:hidden" aria-label="Jump to">
                 <Menu className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -98,9 +98,9 @@ export function PatientVisitBar({ patientId, onClear }: { patientId: string; onC
               })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {showNext && (
+          {showNext && next && (
             <Button size="sm" variant="outline" className="h-8 px-2 text-xs border-secondary/40" onClick={goNext}>
-              {next ? `Next: ${next.label}` : "Next: Finish"} <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              Next: {next.label} <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
           )}
           <Button size="sm" className="h-8 px-2 text-xs bg-secondary hover:bg-secondary/90" onClick={() => setFinishOpen(true)}>
