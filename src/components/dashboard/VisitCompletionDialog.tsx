@@ -21,6 +21,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { Package, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   open: boolean;
@@ -39,7 +42,10 @@ const naira = (n: number) => `₦${Number(n || 0).toLocaleString()}`;
 export function VisitCompletionDialog({ open, onOpenChange, patientId, patientName, appointmentTreatmentId, appointmentId }: Props) {
   const { currentOrg } = useOrg();
   const { data: treatments = [] } = useTreatments();
-  const { data: planItems = [] } = usePatientPlanItems(open ? patientId : null);
+  const { data: allPlanItems = [] } = usePatientPlanItems(open ? patientId : null);
+  // Billable = not yet invoiced. Paid-ahead = invoiced but still in progress (needs "mark done").
+  const planItems = useMemo(() => allPlanItems.filter((i) => !i.invoiced), [allPlanItems]);
+  const paidAhead = useMemo(() => allPlanItems.filter((i) => i.invoiced), [allPlanItems]);
   const { data: prescriptions = [] } = useTodaysPrescriptions(open ? patientId : null);
   const completeItems = useCompletePlanItems();
   const markInvoiced = useMarkPlanItemsInvoiced();
@@ -55,10 +61,12 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
 
   /** Logs extra consumables used beyond the treatment's standard material list. */
   const logExtras = async () => {
-    if (!extras.length) return;
+    // Include an item picked in the selector but not yet added with "+".
+    const all = newExtra.inventory_id ? [...extras, newExtra] : extras;
+    if (!all.length) return;
     setLoggingExtras(true);
     try {
-      for (const e of extras) {
+      for (const e of all) {
         const { error } = await (supabase as any).rpc("record_inventory_movement", {
           p_org_id: currentOrg?.org_id,
           p_inventory_id: e.inventory_id,
@@ -69,8 +77,9 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
         });
         if (error) throw error;
       }
-      toast({ title: "Extra materials logged", description: `${extras.length} item(s) deducted from stock.` });
+      toast({ title: "Extra materials logged", description: `${all.length} item(s) deducted from stock.` });
       setExtras([]);
+      setNewExtra({ inventory_id: "", qty: 1 });
       qc.invalidateQueries({ queryKey: ["inventory"] });
     } catch (err: any) {
       toast({ title: "Could not log materials", description: err.message, variant: "destructive" });
@@ -83,7 +92,7 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
   const finishVisit = async () => {
     try { await logExtras(); } catch { return; }
     const apptId = appointmentId || activeAppointmentId;
-    if (apptId) completeAppointment.mutate(apptId);
+    if (apptId) { try { await completeAppointment.mutateAsync(apptId); } catch { /* toast handled by hook */ } }
     if (patientId) {
       await completeQueueForPatient(currentOrg?.org_id, patientId);
       qc.invalidateQueries({ queryKey: ["waiting-list"] });
@@ -98,6 +107,10 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
   const [rxOpen, setRxOpen] = useState(false);
   const [recallOpen, setRecallOpen] = useState(false);
   const [invoiceTreatmentIds, setInvoiceTreatmentIds] = useState<string[]>([]);
+  const [invoiceLines, setInvoiceLines] = useState<{ key: string; treatmentId?: string | null; description: string; unitPrice: number }[]>([]);
+  const [billed, setBilled] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  useEffect(() => { if (open) setBilled(false); }, [open]);
 
   // Pre-tick completed and in-progress work (patients often pay ahead on long plans).
   useEffect(() => {
@@ -119,14 +132,27 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
     () => selected.reduce((s, i) => s + Number(i.estimated_cost || 0), 0) + (includeAppt && apptTreatment ? Number(apptTreatment.price || 0) : 0),
     [selected, includeAppt, apptTreatment],
   );
-  const unlinked = selected.filter((i) => !i.treatment_id);
+  // Work done today that nobody has billed yet.
+  const unbilledDone = planItems.filter((i) => i.status === "completed").length + (apptTreatment && !billed ? 1 : 0);
+  const requestEnd = () => (unbilledDone > 0 && !billed ? setConfirmEnd(true) : finishVisit());
+
+  // Next planned visit, used to prefill the follow-up booking.
+  const nextPlanned = planItems.find((i) => i.status !== "completed" && i.status !== "in-progress");
 
   const sendToBilling = async () => {
     const pending = selected.filter((i) => i.status !== "completed" && i.status !== "in-progress").map((i) => i.id);
     if (pending.length) await completeItems.mutateAsync(pending);
-    const ids = selected.map((i) => i.treatment_id).filter(Boolean) as string[];
-    if (includeAppt && appointmentTreatmentId && !ids.includes(appointmentTreatmentId)) ids.unshift(appointmentTreatmentId);
-    setInvoiceTreatmentIds(ids);
+    // Carry each plan item with its own plan price and description (incl. uncatalogued work).
+    setInvoiceLines(
+      selected.map((i) => ({
+        key: i.id,
+        treatmentId: i.treatment_id,
+        description: `${i.description}${i.tooth_number ? ` · #${i.tooth_number}` : ""}`,
+        unitPrice: Number(i.estimated_cost) || Number(treatments.find((t) => t.id === i.treatment_id)?.price) || 0,
+      })),
+    );
+    const planTreatmentIds = selected.map((i) => i.treatment_id);
+    setInvoiceTreatmentIds(includeAppt && appointmentTreatmentId && !planTreatmentIds.includes(appointmentTreatmentId) ? [appointmentTreatmentId] : []);
     setInvoiceOpen(true);
   };
 
@@ -178,10 +204,30 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
               {selected.some((i) => i.status !== "completed") && (
                 <p className="text-[11px] text-muted-foreground">Ticked pending items will be marked completed. In-progress items stay in progress.</p>
               )}
-              {unlinked.length > 0 && (
-                <p className="text-[11px] text-amber-600">{unlinked.length} item(s) aren't linked to a catalog treatment — add them on the invoice manually.</p>
-              )}
             </section>
+
+            {paidAhead.length > 0 && (
+              <>
+                <Separator />
+                <section className="space-y-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Paid ahead — still in progress</h4>
+                  {paidAhead.map((i) => (
+                    <div key={i.id} className="flex items-center gap-3 rounded-lg border border-border/40 p-3 text-sm">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {i.description}
+                          {i.tooth_number ? <span className="text-muted-foreground font-normal"> · #{i.tooth_number}</span> : null}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">Already invoiced</p>
+                      </div>
+                      <Button size="sm" variant="outline" className="h-7 text-xs" disabled={completeItems.isPending} onClick={() => completeItems.mutate([i.id])}>
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Mark done
+                      </Button>
+                    </div>
+                  ))}
+                </section>
+              </>
+            )}
 
             <Separator />
 
@@ -277,9 +323,9 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
                 <Receipt className="h-4 w-4 mr-2" /> Send to billing
               </Button>
               <Button variant="outline" onClick={() => setRecallOpen(true)}>
-                <CalendarPlus className="h-4 w-4 mr-2" /> Book next appointment
+                <CalendarPlus className="h-4 w-4 mr-2" /> {nextPlanned ? `Book next: ${nextPlanned.description}` : "Book next appointment"}
               </Button>
-              <Button variant="ghost" onClick={finishVisit} disabled={loggingExtras}>Done — end visit</Button>
+              <Button variant="ghost" onClick={requestEnd} disabled={loggingExtras || completeAppointment.isPending}>Done — end visit</Button>
             </div>
           </div>
         </SheetContent>
@@ -292,13 +338,37 @@ export function VisitCompletionDialog({ open, onOpenChange, patientId, patientNa
             onOpenChange={setInvoiceOpen}
             preselectedPatientId={patientId}
             preselectedTreatmentIds={invoiceTreatmentIds.length ? invoiceTreatmentIds : undefined}
-            onCreated={async () => {
-              await markInvoiced.mutateAsync(selected.map((i) => ({ id: i.id, notes: i.notes })));
+            preselectedLines={invoiceLines.length ? invoiceLines : undefined}
+            onCreated={async (keptKeys) => {
+              // Only tag the plan items that actually stayed on the invoice.
+              const kept = allPlanItems.filter((i) => keptKeys.includes(i.id));
+              if (kept.length) await markInvoiced.mutateAsync(kept.map((i) => ({ id: i.id, notes: i.notes })));
+              setBilled(true);
               finishVisit();
             }}
           />
           <CreatePrescriptionDialog open={rxOpen} onOpenChange={setRxOpen} preselectedPatientId={patientId} />
-          <BookAppointmentDialog open={recallOpen} onOpenChange={setRecallOpen} preselectedPatientId={patientId} />
+          <BookAppointmentDialog
+            open={recallOpen}
+            onOpenChange={setRecallOpen}
+            preselectedPatientId={patientId}
+            preselectedTreatmentId={nextPlanned?.treatment_id || undefined}
+            preselectedNotes={nextPlanned ? `${nextPlanned.visit_number ? `Visit ${nextPlanned.visit_number}: ` : ""}${nextPlanned.description}${nextPlanned.tooth_number ? ` · #${nextPlanned.tooth_number}` : ""}` : undefined}
+          />
+          <AlertDialog open={confirmEnd} onOpenChange={setConfirmEnd}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>End visit without billing?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {unbilledDone} completed item(s) haven't been sent to billing yet. They'll stay on the patient's plan as "done, not billed".
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Go back</AlertDialogCancel>
+                <AlertDialogAction onClick={() => { setConfirmEnd(false); finishVisit(); }}>End visit anyway</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
     </>
