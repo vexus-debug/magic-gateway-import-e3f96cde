@@ -142,6 +142,9 @@ export interface PatientPlanItem {
   status: string;
   completed_date: string | null;
   plan_name: string;
+  /** Already invoiced (paid ahead) but the work is still in progress. */
+  invoiced?: boolean;
+  visit_number?: number | null;
 }
 
 /** All open/today-completed plan items for a patient (used by the visit hand-off). */
@@ -159,8 +162,9 @@ export function usePatientPlanItems(patientId?: string | null) {
         .order("visit_number", { ascending: true });
       if (error) throw error;
       return (data || [])
-        .filter((i: any) => i.status !== "skipped" && !isInvoiced(i))
-        .map((i: any) => ({ ...i, plan_name: i.treatment_plans?.plan_name || "Plan" })) as PatientPlanItem[];
+        // Keep paid-ahead work that is still in progress so it can be marked done later.
+        .filter((i: any) => i.status !== "skipped" && (!isInvoiced(i) || i.status === "in-progress"))
+        .map((i: any) => ({ ...i, invoiced: isInvoiced(i), plan_name: i.treatment_plans?.plan_name || "Plan" })) as PatientPlanItem[];
     },
   });
 }
@@ -336,4 +340,23 @@ export async function completeQueueForPatient(orgId: string | undefined, patient
     .eq("patient_id", patientId)
     .neq("status", "completed")
     .gte("created_at", `${today()}T00:00:00`);
+}
+
+/** True when the patient already has a consent form created today. */
+export function useConsentToday(patientId?: string | null) {
+  const { currentOrg } = useOrg();
+  return useQuery({
+    queryKey: ["consent-today", patientId, currentOrg?.org_id],
+    enabled: !!patientId && !!currentOrg?.org_id,
+    queryFn: async () => {
+      const { count, error } = await (supabase as any)
+        .from("patient_consent_forms")
+        .select("id", { count: "exact", head: true })
+        .eq("org_id", currentOrg?.org_id)
+        .eq("patient_id", patientId)
+        .gte("created_at", `${today()}T00:00:00`);
+      if (error) throw error;
+      return (count || 0) > 0;
+    },
+  });
 }
