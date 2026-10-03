@@ -1,24 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+// The imported app is mounted once in __root so navigation never remounts it.
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Clinexus | Clinic Management Platform" },
+      {
+        name: "description",
+        content:
+          "Run a calmer, more profitable clinic with Clinexus — appointments, records, billing, labs, inventory, and patient care in one platform.",
+      },
+      { property: "og:title", content: "Clinexus | Clinic Management Platform" },
+      {
+        property: "og:description",
+        content:
+          "Appointments, patient records, billing, labs, inventory, and patient care in one connected clinic platform.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://clinexus.com.ng/clinexus-social-preview.jpg" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://clinexus.com.ng/clinexus-social-preview.jpg" },
+    ],
+  }),
+  component: () => null,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
